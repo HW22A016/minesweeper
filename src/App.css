@@ -1,0 +1,24 @@
+.game
+{
+  text-align: center;
+}
+
+.board
+{
+  display: grid;
+  width: fit-content; /*中に入っている要素に合わせて要素自身の幅を決める*/
+  margin: 20px auto;
+}
+
+.cell
+{
+  border: 1px solid #555;
+  background-color: #0E0;
+
+  cursor: pointer;  /*指のカーソルに変更*/
+}
+
+.cell:hover
+{
+  background-color: #0F0;
+}
