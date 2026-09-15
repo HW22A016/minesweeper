@@ -62,7 +62,7 @@ function App() {
   }
 
   // ゲームボードに爆弾を配置する関数
-  function setMines(board, mines)
+  function setMines(board, safeZone, mines)
   {
     let mineCount = 0;
 
@@ -78,8 +78,8 @@ function App() {
         continue;
       }
 
-      // 最初クリックした場合
-      if(board[row][col].opened)
+      // 基準座標と周囲8マスに地雷を設置しない為の処理
+      if(safeZone.some(([x, y]) => x === row && y === col))
       {
         continue;
       }
@@ -91,7 +91,29 @@ function App() {
     return board;
   }
 
-  
+  function getSafeZone(board, rowIndex, colIndex)
+  {
+    let safeZone = [];
+    // 基準座標と周囲8マスの座標を取得
+    for(let rowOffset = -1; rowOffset <= 1; rowOffset++)
+    {
+      for(let colOffset = -1; colOffset <= 1; colOffset++)
+      {
+        // 基準点からの差がboardの範囲内に収まっているか
+        const row = rowIndex + rowOffset;
+        const col = colIndex + colOffset;
+
+        if(row < 0 ||  board.length <= row || col < 0 || board[0].length <= col)
+        {
+          continue;
+        }
+
+        safeZone.push([row, col]);
+      }
+    }
+    return safeZone;
+  }
+
   function searchMines(board)
   {
     for(let row = 0; row < board.length; row++)
@@ -146,24 +168,26 @@ function App() {
 
   function cellClick(rowIndex, colIndex)
   {
-    if(isStarted)
-      return;
-    
-    const { mines } = getDifficulty(difficulty);
-
     let newBoard = board.map(row =>
-      row.map(cell => ({ ...cell }))
-    )
+        row.map(cell => ({ ...cell }))
+      )
+    // 最初クリックした時の処理
+    if(!isStarted)
+    {
+      const { mines } = getDifficulty(difficulty);
+
+      const safeZone = getSafeZone(board, rowIndex, colIndex);
+      // 地雷配置
+      newBoard = setMines(newBoard, safeZone, mines);
+      // 周囲8マスの地雷の数をカウント
+      newBoard = searchMines(newBoard);
+      
+      setIsStarted(true);
+    }
 
     // 最初のクリックを記録
     newBoard[rowIndex][colIndex].opened = true;
-
-    newBoard = setMines(newBoard, mines);
-    newBoard = searchMines(newBoard);
-    
     setBoard(newBoard);
-    setIsStarted(true);
-    console.log(newBoard);
   }
   
   return (
@@ -185,10 +209,14 @@ function App() {
           row.map((cell, colIndex) => (
             <button
               key={`${rowIndex}-${colIndex}`}
-              className="cell"
+              className={`${cell.opened ? 'opened' : 'cell'}`}
               style={{width: `${cellSize}px`, height: `${cellSize}px`}}
               onClick={() => cellClick(rowIndex, colIndex)}
-            ></button>
+            >
+              {cell.opened && 0 < cell.number && cell.number}
+              {cell.opened && cell.mine && '💣'}
+              {cell.opened && cell.flagged && '🚩'}
+            </button>
           ))
         )}
       </div>

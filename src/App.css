@@ -18,6 +18,12 @@
   cursor: pointer;  /*指のカーソルに変更*/
 }
 
+.opened
+{
+  border: 1px solid #555;
+  background-color: #FFDEAD;
+}
+
 .cell:hover
 {
   background-color: #0F0;
