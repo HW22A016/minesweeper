@@ -18,6 +18,12 @@
   cursor: pointer;  /*指のカーソルに変更*/
 }
 
+.selectCell
+{
+  border: 1px solid #FF0;
+  background-color: #AE0;
+}
+
 .opened
 {
   border: 1px solid #555;

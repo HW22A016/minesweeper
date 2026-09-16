@@ -9,6 +9,7 @@ function App() {
   const [board, setBoard] = useState(createBoard(difficulty));
   
   const [isStarted, setIsStarted] = useState(false);
+  const [selectedCell, setSelectedCell] = useState(null);
 
   const { cellSize } = getDifficulty(difficulty);
 
@@ -226,9 +227,35 @@ function App() {
     }
   }
 
-  function cellClick(rowIndex, colIndex)
+  // 最初のクリックの処理
+  function firstClick(rowIndex, colIndex)
   {
-    if(board[rowIndex][colIndex].opened || board[rowIndex][colIndex].flagged)
+    let newBoard = board.map(row =>
+        row.map(cell => ({ ...cell }))
+      )
+  
+    const { mines } = getDifficulty(difficulty);
+
+    const safeZone = getSafeZone(board, rowIndex, colIndex);
+    // 地雷配置
+    newBoard = setMines(newBoard, safeZone, mines);
+    // 周囲8マスの地雷の数をカウント
+    newBoard = searchMines(newBoard);
+    
+    // 最初のクリックを記録
+    setIsStarted(true);
+    
+
+    floodReveal(newBoard, rowIndex, colIndex);
+    newBoard[rowIndex][colIndex].opened = true;
+
+    setBoard(newBoard);
+  }
+
+  // 掘った時の処理
+  function dig()
+  {
+    if(board[selectedCell.row][selectedCell.col].opened || board[selectedCell.row][selectedCell.col].flagged)
     {
       return;
     }
@@ -236,25 +263,41 @@ function App() {
     let newBoard = board.map(row =>
         row.map(cell => ({ ...cell }))
       )
-    // 最初クリックした時の処理
-    if(!isStarted)
-    {
-      const { mines } = getDifficulty(difficulty);
 
-      const safeZone = getSafeZone(board, rowIndex, colIndex);
-      // 地雷配置
-      newBoard = setMines(newBoard, safeZone, mines);
-      // 周囲8マスの地雷の数をカウント
-      newBoard = searchMines(newBoard);
-      
-    // 最初のクリックを記録
-      setIsStarted(true);
+    floodReveal(newBoard, selectedCell.row, selectedCell.col);
+    newBoard[selectedCell.row][selectedCell.col].opened = true;
+
+    setSelectedCell(null);
+    setBoard(newBoard);
+  }
+
+  // 旗のONOFF
+  function setFlag()
+  {
+    const newBoard = board.map(row =>
+        row.map(cell => ({ ...cell }))
+      )
+    
+    newBoard[selectedCell.row][selectedCell.col].flagged = !newBoard[selectedCell.row][selectedCell.col].flagged;
+    
+    setBoard(newBoard);
+    setSelectedCell(null);
+  }
+
+  function actionSelect(rowIndex, colIndex)
+  {
+    if(board[rowIndex][colIndex].opened)
+    {
+      return;
     }
 
-    floodReveal(newBoard, rowIndex, colIndex);
-    newBoard[rowIndex][colIndex].opened = true;
+    if(!isStarted)
+    {
+      firstClick(rowIndex, colIndex);
+      return;
+    }
 
-    setBoard(newBoard);
+    setSelectedCell({row: rowIndex, col: colIndex});
   }
   
   return (
@@ -276,17 +319,32 @@ function App() {
           row.map((cell, colIndex) => (
             <button
               key={`${rowIndex}-${colIndex}`}
-              className={`${cell.opened ? 'opened' : 'cell'}`}
+              className={`${cell.opened ? 'opened' : selectedCell && selectedCell.row === rowIndex && selectedCell.col === colIndex ? 'selectCell' : 'cell'}`}
               style={{width: `${cellSize}px`, height: `${cellSize}px`}}
-              onClick={() => cellClick(rowIndex, colIndex)}
+              onClick={() => actionSelect(rowIndex, colIndex)}
             >
+              {cell.flagged && !cell.opened && '🚩'}
               {cell.opened && 0 < cell.number && cell.number}
               {cell.opened && cell.mine && '💣'}
-              {cell.opened && cell.flagged && '🚩'}
             </button>
           ))
         )}
       </div>
+      {selectedCell && (
+        <div>
+          <button
+            onClick={() => dig()}
+          >
+            掘る
+          </button>
+
+          <button
+            onClick={() => setFlag()}
+          >
+            旗を立てる
+          </button>
+        </div>
+      )}
     </div>
   )
 }
