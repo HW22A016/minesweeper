@@ -166,8 +166,73 @@ function App() {
     return count;
   }
 
+  function floodReveal(board, rowIndex, colIndex)
+  {
+    if(board[rowIndex][colIndex].mine || board[rowIndex][colIndex].number)
+    {
+      return;
+    }
+    
+    const rowLength = board.length;
+    const colLength = board[0].length;
+    // 判定したかどうかの配列
+    const visited = Array.from({ length: rowLength }, () => Array(colLength).fill(false));
+    const queue = [[rowIndex, colIndex]];
+    // 8方向
+    const directions = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
+    let head = 0;
+
+    // 基準のマスを訪れた判定にする
+    visited[rowIndex][colIndex] = true;
+    
+    while(head < queue.length)
+    {
+      const [currentRow, currentCol] = queue[head];
+      for(const [rowOffset, colOffset] of directions)
+      {
+        const row = currentRow + rowOffset;
+        const col = currentCol + colOffset;
+
+        if(row < 0 || rowLength <= row || col < 0 || colLength <= col)
+        {
+          continue;
+        }
+
+        // 既に調べたかどうか
+        if(visited[row][col])
+        {
+          continue;
+        }
+        
+        // 地雷または旗が立っていれば開かない
+        if(board[row][col].mine || board[row][col].flagged)
+        {
+          visited[row][col] = true;
+          continue;
+        }
+
+        // 調べていないかつ地雷なしかつ旗なしなら開く
+        board[row][col].opened = true;
+
+        // 空白のマスならそこからまた調べる
+        if(board[row][col].number === 0)
+        {
+          queue.push([row, col]);
+        }
+
+        visited[row][col] = true;
+      }
+      head++;
+    }
+  }
+
   function cellClick(rowIndex, colIndex)
   {
+    if(board[rowIndex][colIndex].opened || board[rowIndex][colIndex].flagged)
+    {
+      return;
+    }
+
     let newBoard = board.map(row =>
         row.map(cell => ({ ...cell }))
       )
@@ -182,11 +247,13 @@ function App() {
       // 周囲8マスの地雷の数をカウント
       newBoard = searchMines(newBoard);
       
+    // 最初のクリックを記録
       setIsStarted(true);
     }
 
-    // 最初のクリックを記録
+    floodReveal(newBoard, rowIndex, colIndex);
     newBoard[rowIndex][colIndex].opened = true;
+
     setBoard(newBoard);
   }
   
