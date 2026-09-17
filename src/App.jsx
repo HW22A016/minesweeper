@@ -8,8 +8,6 @@ function App() {
   const [difficulty, setDifficulty] = useState('easy');
   const [board, setBoard] = useState(createBoard(difficulty));
   const [flags, setFlags] = useState(0);
-
-  const [remainingCells, setRemainingCells] = useState('');
   
   const [isClear, setIsClear] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -47,6 +45,7 @@ function App() {
     const newDifficulty = event.target.value;
     setDifficulty(newDifficulty);
     setBoard(createBoard(newDifficulty));
+    reset(newDifficulty);
   }
 
   // ゲームボード用の2次元配列を作成する関数
@@ -276,12 +275,8 @@ function App() {
     setSelectedCell(null);
     setBoard(newBoard);
 
-    const digCellsLength = getRemainingCells(newBoard);
-
-    setRemainingCells(digCellsLength);
-
     // 全てのマスを掘り切った時の処理
-    if(digCellsLength === 0)
+    if(getRemainingCells(newBoard) === 0)
     {
       setIsClear(true);
     }
@@ -343,18 +338,19 @@ function App() {
     setSelectedCell({row: rowIndex, col: colIndex});
   }
 
+  // 爆弾以外の掘っていないマスを返す関数
   function getRemainingCells(board)
   {
     return board.flat().filter(cell => !cell.opened && !cell.mine).length;
   }
 
-  function reset()
+  function reset(d = difficulty)
   {
     setIsClear(false);
     setIsGameOver(false);
     setIsStarted(false);
     setSelectedCell(null);
-    setBoard(createBoard(difficulty));
+    setBoard(createBoard(d));
     setFlags(0);
   }
   
