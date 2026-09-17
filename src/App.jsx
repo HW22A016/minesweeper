@@ -7,7 +7,12 @@ import './App.css'
 function App() {
   const [difficulty, setDifficulty] = useState('easy');
   const [board, setBoard] = useState(createBoard(difficulty));
+  const [flags, setFlags] = useState(0);
+
+  const [remainingCells, setRemainingCells] = useState('');
   
+  const [isClear, setIsClear] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
 
@@ -235,6 +240,7 @@ function App() {
       )
   
     const { mines } = getDifficulty(difficulty);
+    setFlags(mines);
 
     const safeZone = getSafeZone(board, rowIndex, colIndex);
     // 地雷配置
@@ -269,16 +275,45 @@ function App() {
 
     setSelectedCell(null);
     setBoard(newBoard);
+
+    const digCellsLength = getRemainingCells(newBoard);
+
+    setRemainingCells(digCellsLength);
+
+    // 全てのマスを掘り切った時の処理
+    if(digCellsLength === 0)
+    {
+      setIsClear(true);
+    }
+    // 爆弾を引いた時の処理
+    else if(newBoard[selectedCell.row][selectedCell.col].mine)
+    {
+      setIsGameOver(true);
+    }
   }
 
   // 旗のONOFF
   function setFlag()
   {
     const newBoard = board.map(row =>
-        row.map(cell => ({ ...cell }))
+        row.map(cell => ({ ...cell })
       )
+    )
+
+    // ボードのセルを保存
+    const cell = newBoard[selectedCell.row][selectedCell.col];
+
+    // 変更前のflagの状態を保存
+    const wasFlagged = cell.flagged;
+
+    if(!wasFlagged && flags === 0)
+    {
+      return;
+    }
     
-    newBoard[selectedCell.row][selectedCell.col].flagged = !newBoard[selectedCell.row][selectedCell.col].flagged;
+    cell.flagged = !wasFlagged;
+
+    setFlags(flag => wasFlagged ? flag + 1 : flag - 1);
     
     setBoard(newBoard);
     setSelectedCell(null);
@@ -286,18 +321,41 @@ function App() {
 
   function actionSelect(rowIndex, colIndex)
   {
+    // 開いていたら
     if(board[rowIndex][colIndex].opened)
     {
       return;
     }
 
+    // 最初の一回目だけ
     if(!isStarted)
     {
       firstClick(rowIndex, colIndex);
       return;
     }
 
+    // ゲームプレイが終わったら
+    if(isClear || isGameOver)
+    {
+      return;
+    }
+
     setSelectedCell({row: rowIndex, col: colIndex});
+  }
+
+  function getRemainingCells(board)
+  {
+    return board.flat().filter(cell => !cell.opened && !cell.mine).length;
+  }
+
+  function reset()
+  {
+    setIsClear(false);
+    setIsGameOver(false);
+    setIsStarted(false);
+    setSelectedCell(null);
+    setBoard(createBoard(difficulty));
+    setFlags(0);
   }
   
   return (
@@ -314,6 +372,9 @@ function App() {
           <option value="hard">むずかしい</option>
         </select>
       </div>
+      <div>
+        <p>🚩x{flags}</p>
+      </div>
       <div className="board" style={{gridTemplateColumns: `repeat(${board[0].length}, ${cellSize}px)`}}>
         {board.map((row, rowIndex) =>
           row.map((cell, colIndex) => (
@@ -323,9 +384,10 @@ function App() {
               style={{width: `${cellSize}px`, height: `${cellSize}px`}}
               onClick={() => actionSelect(rowIndex, colIndex)}
             >
-              {cell.flagged && !cell.opened && '🚩'}
-              {cell.opened && 0 < cell.number && cell.number}
-              {cell.opened && cell.mine && '💣'}
+              {cell.flagged && !cell.opened && '🚩'}  {/* 旗が立っていたら表示 */}
+              {!isClear && !isGameOver && cell.opened && 0 < cell.number && cell.number}
+              {(isClear || isGameOver) && cell.mine && '💣'}  {/* clearとgameOverどちらかの判定がtrueかつ爆弾のcellなら */}
+              {(isClear || isGameOver) && 0 < cell.number && cell.number} {/* clearとgameOverどちらかの判定がtrueかつ数字があるマスなら */}
             </button>
           ))
         )}
@@ -345,6 +407,26 @@ function App() {
           </button>
         </div>
       )}
+
+      {isClear && (
+        <div>
+          <h1 style={{color: "#0F0"}}>GAMECLEAR</h1>
+        </div>
+      )}
+
+      {isGameOver && (
+        <div>
+          <h1 style={{color: "#F00"}}>GAMEOVER</h1>
+        </div>
+      )}
+
+      <div>
+        <button
+          onClick={() => reset()}
+        >
+          リセット
+        </button>
+      </div>
     </div>
   )
 }
