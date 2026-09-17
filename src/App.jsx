@@ -15,14 +15,20 @@ function App() {
   const [selectedCell, setSelectedCell] = useState(null);
   const [timer, setTimer] = useState(0);
 
+  const [data, setData] = useState(() => getLocalStorageData("minesweeper"));
+
   const { cellSize } = getDifficulty(difficulty);
 
   // timer, isStarted, isClear, isGameOverの変数が変更されれば動く
   // setTimeoutはtimer, isStarted, isClear, isGameOverの変数のどれかが変更されればclearTimeoutを実行してから新しいsetTimeoutを作る
   useEffect(() => {
-    console.log(isStarted, isClear, isGameOver);
-    if(!isStarted || isClear || isGameOver)
+    if(!isStarted || isGameOver)
     {
+      return;
+    }
+    if(isClear)
+    {
+      updateData();
       return;
     }
     const timerId = setTimeout(() => {
@@ -31,6 +37,26 @@ function App() {
 
     return () => clearTimeout(timerId);
   }, [timer, isStarted, isClear, isGameOver]);
+
+  function getLocalStorageData(key)
+  {
+    const localData = localStorage.getItem(key);
+    return localData ? JSON.parse(localData) : [];
+  }
+
+  function updateData()
+  {
+    const newData = {
+      ...data,
+      [difficulty]: data[difficulty] ?
+        timer < data[difficulty] ? timer : data[difficulty]
+        :timer
+    };
+
+    localStorage.setItem("minesweeper", JSON.stringify(newData));
+    setData(newData);
+    console.log("記録が完了しました。");
+  }
 
   // 難易度ごとの数値を渡す関数
   function getDifficulty(difficulty)
@@ -384,6 +410,13 @@ function App() {
           <option value="easy">やさしい</option>
           <option value="hard">むずかしい</option>
         </select>
+      </div>
+
+      <div>
+        {data[difficulty] !== undefined ?
+          <p>最速記録:{data[difficulty]}秒</p> :
+          <p>記録なし</p>
+        }
       </div>
       <div>
         <p>⏰:{timer} 🚩x{flags}</p>
