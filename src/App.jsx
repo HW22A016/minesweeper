@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
@@ -13,8 +13,24 @@ function App() {
   const [isGameOver, setIsGameOver] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [selectedCell, setSelectedCell] = useState(null);
+  const [timer, setTimer] = useState(0);
 
   const { cellSize } = getDifficulty(difficulty);
+
+  // timer, isStarted, isClear, isGameOverの変数が変更されれば動く
+  // setTimeoutはtimer, isStarted, isClear, isGameOverの変数のどれかが変更されればclearTimeoutを実行してから新しいsetTimeoutを作る
+  useEffect(() => {
+    console.log(isStarted, isClear, isGameOver);
+    if(!isStarted || isClear || isGameOver)
+    {
+      return;
+    }
+    const timerId = setTimeout(() => {
+      setTimer((time) => time + 1);
+    }, 1000);
+
+    return () => clearTimeout(timerId);
+  }, [timer, isStarted, isClear, isGameOver]);
 
   // 難易度ごとの数値を渡す関数
   function getDifficulty(difficulty)
@@ -352,6 +368,7 @@ function App() {
     setSelectedCell(null);
     setBoard(createBoard(d));
     setFlags(0);
+    setTimer(0);
   }
   
   return (
@@ -369,7 +386,7 @@ function App() {
         </select>
       </div>
       <div>
-        <p>🚩x{flags}</p>
+        <p>⏰:{timer} 🚩x{flags}</p>
       </div>
       <div className="board" style={{gridTemplateColumns: `repeat(${board[0].length}, ${cellSize}px)`}}>
         {board.map((row, rowIndex) =>
