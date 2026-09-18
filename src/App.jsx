@@ -437,22 +437,19 @@ function App() {
             </button>
           ))
         )}
-      </div>
-      {selectedCell && (
-        <div>
-          <button
-            onClick={() => dig()}
-          >
-            掘る
-          </button>
 
-          <button
-            onClick={() => setFlag()}
-          >
-            旗を立てる
-          </button>
-        </div>
-      )}
+        {selectedCell && (
+          <div className='actionSelectButton' style={{left: `${selectedCell.col * cellSize}px`, top: `${selectedCell.row * cellSize}px`}}>
+            <button onClick={() => dig()}>
+              ⛏
+            </button>
+
+            <button onClick={() => setFlag()}>
+              🚩
+            </button>
+          </div>
+        )}
+      </div>
 
       {isClear && (
         <div>

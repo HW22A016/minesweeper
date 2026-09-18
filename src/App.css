@@ -8,6 +8,7 @@
   display: grid;
   width: fit-content; /*中に入っている要素に合わせて要素自身の幅を決める*/
   margin: 20px auto;
+  position: relative;
 }
 
 .cell
@@ -22,6 +23,14 @@
 {
   border: 1px solid #FF0;
   background-color: #AE0;
+}
+
+.actionSelectButton
+{
+  position: absolute;
+  display: flex;
+  gap:5px;
+  opacity: 0.8;
 }
 
 .opened
