@@ -401,7 +401,7 @@ function App() {
     <div className="game">
       <h1>マインスイーパー</h1>
       <div className="difficulty">
-        <label htmlFor="difficulty">難易度:</label> {/* htmlForを使うとselectのidと関連付けができて難易度をクリックしてもselectがクリック判定になる */}
+        <label htmlFor="difficulty" className='textColor'>難易度:</label> {/* htmlForを使うとselectのidと関連付けができて難易度をクリックしてもselectがクリック判定になる */}
         <select
           id="difficulty"
           value={difficulty}
@@ -412,13 +412,13 @@ function App() {
         </select>
       </div>
 
-      <div>
+      <div className='textColor'>
         {data[difficulty] !== undefined ?
           <p>最速記録:{data[difficulty]}秒</p> :
           <p>記録なし</p>
         }
       </div>
-      <div>
+      <div className='textColor'>
         <p>⏰:{timer} 🚩x{flags}</p>
       </div>
       <div className="board" style={{gridTemplateColumns: `repeat(${board[0].length}, ${cellSize}px)`}}>
@@ -440,11 +440,11 @@ function App() {
 
         {selectedCell && (
           <div className='actionSelectButton' style={{left: `${selectedCell.col * cellSize}px`, top: `${selectedCell.row * cellSize}px`}}>
-            <button onClick={() => dig()}>
+            <button className='actionButton' onClick={() => dig()}>
               ⛏
             </button>
 
-            <button onClick={() => setFlag()}>
+            <button className='actionButton' onClick={() => setFlag()}>
               🚩
             </button>
           </div>

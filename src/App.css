@@ -3,6 +3,11 @@
   text-align: center;
 }
 
+.textColor
+{
+  color: #000;
+}
+
 .board
 {
   display: grid;
@@ -28,18 +33,31 @@
 .actionSelectButton
 {
   position: absolute;
-  display: flex;
   gap:5px;
-  opacity: 0.8;
+}
+
+.actionButton
+{
+  background: transparent;
+  border: none;
 }
 
 .opened
 {
   border: 1px solid #555;
   background-color: #FFDEAD;
+  color: #000;
 }
 
 .cell:hover
 {
   background-color: #0F0;
+}
+
+@media(prefers-color-scheme: dark)
+{
+  .textColor
+  {
+    color: #FFF;
+  }
 }
