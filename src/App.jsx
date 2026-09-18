@@ -440,7 +440,7 @@ function App() {
 
         {selectedCell && (
           <div className='actionSelectButton' style={{left: `${selectedCell.col * cellSize}px`, top: `${selectedCell.row * cellSize}px`}}>
-            <button className='actionButton' onClick={() => dig()}>
+            <button className='actionButton' style={{color: "#000"}} onClick={() => dig()}>
               ⛏
             </button>
 
